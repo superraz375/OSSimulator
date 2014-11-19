@@ -73,6 +73,7 @@ namespace Simulator
             {
                 memorySize = value;
                 NotifyPropertyChanged(m => m.MemorySize);
+                ChangeMemory();
             }
         }
 

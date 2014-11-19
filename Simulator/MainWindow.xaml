@@ -125,6 +125,17 @@
                 Width="110"
                 Command="{Binding OpenFileCommand}"
                 />
+        <Label Content="Memory Size"
+               HorizontalAlignment="Left"
+               Margin="532,5,0,0"
+               VerticalAlignment="Top" />
+        <TextBox HorizontalAlignment="Left"
+                 Height="23"
+                 Margin="616,5,0,0"
+                 TextWrapping="Wrap"
+                 Text="{Binding Model.MemorySize, UpdateSourceTrigger=PropertyChanged}"
+                 VerticalAlignment="Top"
+                 Width="96" />
 
     </Grid>
 </Window>
