@@ -3,139 +3,172 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lcl="clr-namespace:Simulator"
         Title="OS Simulator"
-        Height="499.406"
-        Width="779">
+        Height="600"
+        Width="800">
     <Window.Resources>
         <lcl:BackgroundConverter x:Key="converter" />
     </Window.Resources>
     <Grid>
-        <ListBox HorizontalAlignment="Left"
-                 Height="264"
-                 Margin="10,49,0,0"
-                 VerticalAlignment="Top"
-                 ItemsSource="{Binding Path=Model.WaitingQueue}"
-                 DisplayMemberPath="ProcessId"
-                 Width="126" />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+
         <Label Content="Waiting Queue"
-               HorizontalAlignment="Left"
-               Margin="16,23,0,0"
-               VerticalAlignment="Top" />
-        <ListBox HorizontalAlignment="Left"
-                 Height="264"
-                 Margin="151,49,0,0"
-                 VerticalAlignment="Top"
-                 ItemsSource="{Binding Model.ReadyQueue}"
-                 DisplayMemberPath="ProcessId"
-                 Width="140" />
+               Grid.Column="0"
+               Grid.Row="0" />
+        <ListBox Grid.Column="0"
+                 Grid.Row="1"
+                 ItemsSource="{Binding Path=Model.WaitingQueue}"
+                 DisplayMemberPath="ProcessId" />
+
         <Label Content="Ready Queue"
-               HorizontalAlignment="Left"
-               Margin="157,23,0,0"
-               VerticalAlignment="Top" />
+               Grid.Column="1"
+               Grid.Row="0" />
+        <ListBox Grid.Column="1"
+                 Grid.Row="1"
+                 ItemsSource="{Binding Model.ReadyQueue}"
+                 DisplayMemberPath="ProcessId" />
+
+
         <Label Content="Executing PCB"
-               HorizontalAlignment="Left"
-               Margin="310,23,0,0"
-               VerticalAlignment="Top" />
+               Grid.Column="2"
+               Grid.Row="0" />
         <TextBox x:Name="executingPcbTextbox"
-                 HorizontalAlignment="Left"
-                 Height="259"
-                 Margin="310,54,0,0"
+                 Grid.Column="2"
+                 Grid.Row="1"
                  TextWrapping="Wrap"
                  Text="{Binding Path=Model.ExecutingPcb.DisplayString, Mode=OneWay}"
-                 VerticalAlignment="Top"
-                 Width="200"
                  VerticalScrollBarVisibility="Auto" />
+
         <Button Content="Simulate Processes"
-                HorizontalAlignment="Left"
-                Margin="310,318,0,0"
+                Grid.Column="2"
+                Grid.Row="4"
                 Command="{Binding SimulateProcessesCommand}"
-                IsEnabled="{Binding Path=Model.IsEnabled}"
-                VerticalAlignment="Top"
-                Width="200" />
-        <ComboBox HorizontalAlignment="Left"
-                  Margin="10,364,0,0"
-                  VerticalAlignment="Top"
-                  ItemsSource="{Binding Path=Model.ProcessTypes}"
-                  SelectedItem="{Binding Path=Model.SelectedProcessType}"
-                  Width="120" />
+                IsEnabled="{Binding Path=Model.IsEnabled}" />
+
+        <Grid  Grid.Column="0"
+               Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Label Content="Starting Queue" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding Path=Model.ProcessTypes}"
+                      SelectedItem="{Binding Path=Model.SelectedProcessType}" />
+        </Grid>
+
+
+
         <Button Content="Add New Process"
-                HorizontalAlignment="Left"
-                Margin="135,364,0,0"
-                VerticalAlignment="Top"
+                Grid.Column="0"
+                Grid.Row="4"
                 Command="{Binding AddNewProcessCommand}"
-                IsEnabled="{Binding Path=Model.IsEnabled}"
-                Width="110" />
+                IsEnabled="{Binding Path=Model.IsEnabled}" />
         <Button Content="Execute Next Process"
-                HorizontalAlignment="Left"
-                Margin="151,318,0,0"
-                VerticalAlignment="Top"
+                Grid.Column="1"
+                Grid.Row="5"
                 Command="{Binding ExecuteNextProcessCommand}"
-                IsEnabled="{Binding Path=Model.IsEnabled}"
-                Width="140" />
+                IsEnabled="{Binding Path=Model.IsEnabled}" />
+
         <Button Content="Set Process to Ready"
                 Command="{Binding SetToReadyCommand}"
                 IsEnabled="{Binding Path=Model.IsEnabled}"
-                HorizontalAlignment="Left"
-                Margin="10,318,0,0"
-                VerticalAlignment="Top"
-                Width="126" />
-        <TextBox HorizontalAlignment="Left"
-                 Height="23"
-                 Margin="432,343,0,0"
-                 TextWrapping="Wrap"
-                 Text="{Binding Path=Model.SimulationDelay}"
-                 VerticalAlignment="Top"
-                 Width="78" />
-        <Label Content="Simulation Delay:"
-               HorizontalAlignment="Left"
-               Margin="310,343,0,0"
-               VerticalAlignment="Top"
-               Height="32"
-               Width="117" />
-        <ListBox HorizontalAlignment="Left"
-                 Height="403"
-                 Margin="532,59,0,0"
-                 ItemsSource="{Binding Path=Model.Memory.MemoryArray}"
-                 VerticalAlignment="Top"
+                Grid.Column="1"
+                Grid.Row="4" />
+
+
+        <Grid Grid.Column="2"
+              Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Label Content="Simulation Delay:"
+                   Grid.Column="0" />
+            <TextBox TextWrapping="Wrap"
+                     Text="{Binding Path=Model.SimulationDelay}"
+                     Grid.Column="1" />
+        </Grid>
+
+        <ListBox ItemsSource="{Binding Path=Model.Memory.MemoryArray}"
                  HorizontalContentAlignment="Stretch"
-                 Width="180">
+                 Name="memoryListBox"
+                 Grid.Column="3"
+                 Grid.Row="1">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}"
                                TextAlignment="Center"
                                HorizontalAlignment="Stretch"
+                               Foreground="White"
                                Background="{Binding Converter={StaticResource converter}}" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+
+
         <Label Content="Memory"
-               HorizontalAlignment="Left"
-               Margin="532,28,0,0"
-               VerticalAlignment="Top" />
-        <ComboBox HorizontalAlignment="Left"
-                  ItemsSource="{Binding Path=Model.MemoryTypes}"
-                  SelectedItem="{Binding Path=Model.SelectedMemoryType}"
-                  Margin="592,32,0,0"
-                  VerticalAlignment="Top"
-                  Width="120" />
-        <Button Content="Open File..."
+               Grid.Column="3"
+               Grid.Row="0" />
+
+
+
+
+        <Grid  Grid.Column="3"
+               Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Label Content="Algorithm" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding Path=Model.MemoryTypes}"
+                      SelectedItem="{Binding Path=Model.SelectedMemoryType}" />
+        </Grid>
+
+
+
+        <Button Content="Open Memory Allocation File..."
                 x:Name="openFileButton"
-                HorizontalAlignment="Left"
-                Margin="10,426,0,0"
-                VerticalAlignment="Top"
-                Width="110"
+                Grid.Column="2"
+                Grid.Row="3"
                 Command="{Binding OpenFileCommand}"
-                />
-        <Label Content="Memory Size"
-               HorizontalAlignment="Left"
-               Margin="532,5,0,0"
-               VerticalAlignment="Top" />
-        <TextBox HorizontalAlignment="Left"
-                 Height="23"
-                 Margin="616,5,0,0"
-                 TextWrapping="Wrap"
-                 Text="{Binding Model.MemorySize, UpdateSourceTrigger=PropertyChanged}"
-                 VerticalAlignment="Top"
-                 Width="96" />
+                IsEnabled="{Binding Path=Model.IsEnabled}"
+                Grid.ColumnSpan="2"
+                Height="20"
+                Margin="198.5,25.5,0,0"
+                Grid.RowSpan="2"
+                VerticalAlignment="Top"
+                Click="openFileButton_Click" />
+
+
+
+        <Grid  Grid.Column="3"
+               Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Label Content="Memory Size" />
+            <TextBox Grid.Column="1"
+                     Text="{Binding Model.MemorySize, UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+
 
     </Grid>
 </Window>

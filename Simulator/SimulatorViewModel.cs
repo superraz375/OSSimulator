@@ -68,6 +68,9 @@ namespace Simulator
         }
 
         private DelegateCommand openFileCommand;
+        /// <summary>
+        /// Opens a file to simulate memory allocation
+        /// </summary>
         public DelegateCommand OpenFileCommand
         {
             get { return openFileCommand ?? (openFileCommand = new DelegateCommand(OpenFile)); }
@@ -94,6 +97,12 @@ namespace Simulator
             }
         }
 
+        /// <summary>
+        /// Set process to ready with a delay
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="delay"></param>
+        /// <returns></returns>
         public async Task SetToReady(PCB process, int delay = 0)
         {
             await Task.Delay(delay);
@@ -122,15 +131,25 @@ namespace Simulator
 
         }
 
+        /// <summary>
+        /// Clear memory for process with delay
+        /// </summary>
+        /// <param name="delay"></param>
+        /// <param name="processId"></param>
         public async void ClearAllocatedMemory(int delay, int processId)
         {
             await Task.Delay(delay);
+
+            Console.WriteLine("Freeing memory from process({0})", processId);
+
 
             App.Current.Dispatcher.Invoke((Action)delegate
             {
                 MoveToNextProcess(processId);
                 Model.Memory.ClearMemory(processId);
             });
+
+
 
         }
 
@@ -214,7 +233,6 @@ namespace Simulator
             MoveToNextProcess();
         }
 
-
         /// <summary>
         /// adding a PCB to a given position in the queue, the default position is the end (tail) of the queue.
         /// </summary>
@@ -242,13 +260,18 @@ namespace Simulator
                 // Allocate the memory
                 var allocationResult = Model.Memory.TryAllocate(process.ProcessId, process.TotalMemoryAllocated);
 
-                if (!allocationResult)
+                Console.WriteLine("Allocating Memory  PID={0} Location={1}  Size={2}  WaitTime={3}  ExecutionTime={4}", process.ProcessId, allocationResult, process.TotalMemoryAllocated, process.WaitTime, process.TimeNeededForMemory);
+
+                if (allocationResult == -1)
                 {
                     // Fragmentation Error
-                    MessageBox.Show("Fragmentation error using: " + Model.SelectedMemoryType.ToString());
-                }
-                Console.WriteLine(allocationResult);
+                    var message = "Cannot allocate memory for process. Possible Fragmentation error using: " + Model.SelectedMemoryType.ToString();
 
+                    MessageBox.Show(message);
+                    Console.WriteLine(message);
+                }
+
+                // Free memory for process when finished executing
                 Task.Run(() => ClearAllocatedMemory(process.TimeNeededForMemory, process.ProcessId));
 
             }
@@ -328,7 +351,10 @@ namespace Simulator
             }
         }
 
-
+        /// <summary>
+        /// Remove process from exection
+        /// </summary>
+        /// <param name="process"></param>
         public void RemoveProcessFromExecution(PCB process)
         {
             process.EndTime = Environment.TickCount;
@@ -339,8 +365,8 @@ namespace Simulator
                 Model.Memory.ClearMemory(process.ProcessId);
             });
 
-            Console.WriteLine("Removing process({0}) from Execution", process.ProcessId);
-            Console.WriteLine("CPU time used by process({0}): {1}", process.ProcessId, process.CPUTimeUsed);
+            //Console.WriteLine("Removing process({0}) from Execution", process.ProcessId);
+            //Console.WriteLine("CPU time used by process({0}): {1}", process.ProcessId, process.CPUTimeUsed);
 
         }
 
@@ -353,6 +379,10 @@ namespace Simulator
             MoveToNextProcess(pid);
         }
 
+        /// <summary>
+        /// Moves the process to the next queue
+        /// </summary>
+        /// <param name="pid"></param>
         public void MoveToNextProcess(int pid)
         {
             if (Model.ExecutingPcb != null)
@@ -365,7 +395,7 @@ namespace Simulator
             // If there is another process in the ready queue
             if (process != null)
             {
-                
+
 
                 // Get the next process from the ready queue
                 Model.ExecutingPcb = process;
@@ -373,9 +403,8 @@ namespace Simulator
 
                 Model.ExecutingPcb.StartTime = Environment.TickCount;
 
-                Console.WriteLine("Removing process({0}) from Ready Queue", Model.ExecutingPcb.ProcessId);
-
-                Console.WriteLine("Adding process({0}) to Execution", Model.ExecutingPcb.ProcessId);
+                //Console.WriteLine("Removing process({0}) from Ready Queue", Model.ExecutingPcb.ProcessId);
+                //Console.WriteLine("Adding process({0}) to Execution", Model.ExecutingPcb.ProcessId);
 
             }
             else
@@ -385,6 +414,9 @@ namespace Simulator
             }
         }
 
+        /// <summary>
+        /// Opens a file to simulate memory allocation
+        /// </summary>
         public void OpenFile()
         {
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
@@ -405,56 +437,75 @@ namespace Simulator
             }
         }
 
-        public async void LoadProcessesFromFile(string filePath)
+        /// <summary>
+        /// Process the simulation file
+        /// </summary>
+        /// <param name="filePath"></param>
+        public async void LoadProcessesFromFile(string filePath, int delayMultiplier = 1000)
         {
-            using (StreamReader reader = new StreamReader(File.OpenRead(filePath)))
+            try
             {
-
-                string memorySizeStr = reader.ReadLine();
-                int memorySize = Model.MemorySize;
-                if (int.TryParse(memorySizeStr, out memorySize))
+                using (StreamReader reader = new StreamReader(File.OpenRead(filePath)))
                 {
-                    Model.MemorySize = memorySize;
-                    Model.ChangeMemory();
-                }
 
-                string line = null;
-
-                while ((line = reader.ReadLine()) != null)
-                {
-                    if (line.Length > 0)
+                    // Update the current memory
+                    string memorySizeStr = reader.ReadLine();
+                    int memorySize = Model.MemorySize;
+                    if (int.TryParse(memorySizeStr, out memorySize))
                     {
-                        //PID   WAIT_TIME   EXEC_TIME   MEM_NEEDED
-                        var splitted = line.Split('\t');
+                        Model.MemorySize = memorySize;
+                    }
 
-                        if (splitted.Length > 3)
+                    string line = null;
+
+
+                    List<PCB> processes = new List<PCB>();
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.Length > 0)
                         {
+                            //PID   WAIT_TIME   EXEC_TIME   MEM_NEEDED
+                            var splitted = line.Split('\t');
 
-
-                            var segments = splitted.Select(s =>
+                            if (splitted.Length > 3)
                             {
-                                return s.Length > 0 ? int.Parse(s) : 0;
-                            }).ToList();
+                                //Convert segments to integers
+                                var segments = splitted.Select(s =>
+                                {
+                                    return s.Length > 0 ? int.Parse(s) : 0;
+                                }).ToList();
 
 
-                            int pid = segments[0];
-                            int waitTime = segments[1];
-                            int execTime = segments[2];
-                            int memNeeded = segments[3];
+                                int pid = segments[0];
+                                int waitTime = segments[1];
+                                int execTime = segments[2];
+                                int memNeeded = segments[3];
 
-                            var process = new PCB(pid);
-                            process.TotalMemoryAllocated = memNeeded;
-                            process.TimeNeededForMemory = execTime * 1000;
-                            AddToWaiting(process, 0);
-                            SetToReady(process, waitTime * 1000);
-
-                            //break;
+                                // Create a new process with the specified info
+                                var process = new PCB(pid);
+                                process.TotalMemoryAllocated = memNeeded;
+                                process.TimeNeededForMemory = execTime * delayMultiplier;
+                                process.WaitTime = waitTime * delayMultiplier;
+                                processes.Add(process);
+                            }
                         }
                     }
-                }
 
+                    // Start the processes
+                    processes.ForEach(p => AddToWaiting(p, 0));
+                    processes.ForEach(p => SetToReady(p, p.WaitTime));
+
+
+
+                }
+            }
+
+            catch (Exception e)
+            {
+                MessageBox.Show("Error reading file data - " + e.Message);
+                Console.WriteLine(e.StackTrace);
             }
         }
     }
-
 }

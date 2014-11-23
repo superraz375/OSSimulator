@@ -147,6 +147,24 @@ namespace Simulator
         }
 
         /// <summary>
+        /// Wait time of process executionm
+        /// </summary>
+        private int waitTime;
+        /// <summary>
+        /// Wait time of process execution
+        /// </summary>
+        public int WaitTime
+        {
+            get { return waitTime; }
+            set
+            {
+                waitTime = value;
+                NotifyPropertyChanged(m => m.WaitTime);
+
+            }
+        }
+
+        /// <summary>
         /// List of Files used by the process
         /// </summary>
         private ObservableCollection<string> openFiles;

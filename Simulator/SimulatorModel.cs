@@ -43,6 +43,9 @@ namespace Simulator
         }
 
         private ObservableCollection<MemoryType> memoryTypes;
+        /// <summary>
+        /// List of available memory allocation types
+        /// </summary>
         public ObservableCollection<MemoryType> MemoryTypes
         {
             get { return memoryTypes; }
@@ -54,6 +57,9 @@ namespace Simulator
         }
 
         private MemoryType selectedMemoryType;
+        /// <summary>
+        /// The selected memory allocation type
+        /// </summary>
         public MemoryType SelectedMemoryType
         {
             get { return selectedMemoryType; }
@@ -66,6 +72,9 @@ namespace Simulator
         }
 
         private int memorySize;
+        /// <summary>
+        /// Total memory size
+        /// </summary>
         public int MemorySize
         {
             get { return memorySize; }
@@ -154,6 +163,9 @@ namespace Simulator
         }
 
 
+        /// <summary>
+        /// Updates the memory with the correct algorithm and size
+        /// </summary>
         public void ChangeMemory()
         {
             switch (SelectedMemoryType)
@@ -170,6 +182,9 @@ namespace Simulator
                 default:
                     break;
             }
+
+            Console.WriteLine("Memory Allocation Algorithm: {0}", SelectedMemoryType.ToString());
+            Console.WriteLine("Memory Size: {0}", MemorySize);
         }
 
         public SimulatorModel()
@@ -187,7 +202,7 @@ namespace Simulator
             SimulationDelay = 300;
             IsEnabled = true;
 
-            MemorySize = 10;
+            MemorySize = 16;
             MemoryTypes = new ObservableCollection<MemoryType>() {
                 MemoryType.FIRST_FIT,
                 MemoryType.BEST_FIT,

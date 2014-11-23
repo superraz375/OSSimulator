@@ -8,17 +8,13 @@ using System.Threading.Tasks;
 
 namespace Simulator
 {
-    /*
-     * Each process will include info about amount of memory needed and how long it will need it for
-     * OS will keep track of memory
-     * 3 Algorithms: First-Fit, Best-Fit, Worst-Fit (will need simulated clock)
-     * Report possible memory fragmentation
-     *      Terminate at first reporting of fragmentation
-     *      
-     */
+    
     public abstract class Memory : ModelBase<Memory>
     {
         private int totalSize;
+        /// <summary>
+        /// Total size of the memory
+        /// </summary>
         public int TotalSize
         {
             get { return totalSize; }
@@ -30,6 +26,9 @@ namespace Simulator
         }
 
         private ObservableCollection<int> memoryArray;
+        /// <summary>
+        /// Array of memory allocations
+        /// </summary>
         public ObservableCollection<int> MemoryArray
         {
             get { return memoryArray; }
@@ -40,14 +39,28 @@ namespace Simulator
             }
         }
 
+        /// <summary>
+        /// Initializes the memory
+        /// </summary>
+        /// <param name="totalSize"></param>
         public Memory(int totalSize)
         {
             TotalSize = totalSize;
             MemoryArray = new ObservableCollection<int>(Enumerable.Repeat<int>(-1, TotalSize));
         }
 
-        public abstract bool TryAllocate(int processId, int size);
+        /// <summary>
+        /// Each subclass will implement a unique TryAllocate method for its implementation
+        /// </summary>
+        /// <param name="processId"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public abstract int TryAllocate(int processId, int size);
 
+        /// <summary>
+        /// Clears the memory for the specified process ID
+        /// </summary>
+        /// <param name="processId"></param>
         public void ClearMemory(int processId)
         {
             for (int i = 0; i < MemoryArray.Count; i++)
@@ -74,12 +87,14 @@ namespace Simulator
 
             for (int i = 0; i < MemoryArray.Count; i++)
             {
+                // Increase count for empty block
                 if (MemoryArray[i] == -1)
                 {
                     length++;
                 }
                 else
                 {
+                    // Space is taken, restart count of empty block
                     if (length > 0)
                     {
                         blocks[start] = length;
@@ -96,6 +111,7 @@ namespace Simulator
                 blocks[start] = length;
             }
 
+            // Return the blocks
             return blocks;
         }
     }

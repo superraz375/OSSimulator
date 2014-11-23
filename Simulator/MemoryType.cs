@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Simulator
 {
+    /// <summary>
+    /// Memory algorithm types
+    /// </summary>
     public enum MemoryType
     {
         FIRST_FIT,

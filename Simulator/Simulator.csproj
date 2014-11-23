@@ -68,6 +68,7 @@
     </ApplicationDefinition>
     <Compile Include="BackgroundConverter.cs" />
     <Compile Include="BestFitMemory.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="FirstFitMemory.cs" />
     <Compile Include="Memory.cs" />
     <Compile Include="MemoryType.cs" />
