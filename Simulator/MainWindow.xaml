@@ -122,9 +122,21 @@
         </ListBox>
 
 
-        <Label Content="Memory"
-               Grid.Column="3"
-               Grid.Row="0" />
+        <Grid  Grid.Column="3"
+               Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Label Content="Memory" />
+            <Label Content="Clock:"
+                   HorizontalAlignment="Right"
+                   Grid.Column="1"/>
+            <Label Grid.Column="2"
+                      HorizontalAlignment="Right"
+                     Content="{Binding Model.Clock,UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
 
 
 
@@ -153,8 +165,7 @@
                 Height="20"
                 Margin="198.5,25.5,0,0"
                 Grid.RowSpan="2"
-                VerticalAlignment="Top"
-                Click="openFileButton_Click" />
+                VerticalAlignment="Top" />
 
 
 

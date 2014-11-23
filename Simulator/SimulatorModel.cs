@@ -162,6 +162,16 @@ namespace Simulator
             }
         }
 
+        private int clock;
+        public int Clock
+        {
+            get { return clock; }
+            set
+            {
+                clock = value;
+                NotifyPropertyChanged(m => m.Clock);
+            }
+        }
 
         /// <summary>
         /// Updates the memory with the correct algorithm and size

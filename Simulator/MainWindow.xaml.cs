@@ -30,29 +30,14 @@ namespace Simulator
 
             // Initialize the data context to the viewmodel
             this.DataContext = vm;
+
+            vm.ScreenshotEvent += vm_ScreenshotEvent;
         }
 
-
-        private void openFileButton_Click(object sender, RoutedEventArgs e)
+        void vm_ScreenshotEvent(object sender, SimpleMvvmToolkit.NotificationEventArgs e)
         {
-            //SaveMemoryScreenshots();
-        }
-
-        private void SaveMemoryScreenshots()
-        {
-            Task.Run(() =>
-                {
-                    for (int i = 0; i < 16; i++)
-                    {
-                        Thread.Sleep(1000);
-
-                        App.Current.Dispatcher.Invoke((Action)delegate
-                          {
-                              var bytes = memoryListBox.GetImage(2, 2);
-                              File.WriteAllBytes(@"C:\temp\" + i + ".png", bytes);
-                          });
-                    }
-                });
+            var bytes = memoryListBox.GetImage(2, 2);
+            File.WriteAllBytes(@"C:\temp\" + e.Message + ".png", bytes);
         }
     }
 }

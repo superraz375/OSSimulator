@@ -77,6 +77,8 @@ namespace Simulator
             private set { openFileCommand = value; }
         }
 
+        public event EventHandler<NotificationEventArgs> ScreenshotEvent;
+
         /// <summary>
         /// Random number generator
         /// </summary>
@@ -103,12 +105,12 @@ namespace Simulator
         /// <param name="process"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public async Task SetToReady(PCB process, int delay = 0)
+        public async Task SetToReady(PCB process, bool allocateMemory = true, int delay = 0)
         {
             await Task.Delay(delay);
 
             RemoveProcess(process.ProcessId);
-            AddToReady(process, 0);
+            AddToReady(process, allocateMemory, 0);
         }
 
         /// <summary>
@@ -140,7 +142,7 @@ namespace Simulator
         {
             await Task.Delay(delay);
 
-            Console.WriteLine("Freeing memory from process({0})", processId);
+            Console.WriteLine("Freeing memory from process({0}) at time={1}", processId, Model.Clock);
 
 
             App.Current.Dispatcher.Invoke((Action)delegate
@@ -178,7 +180,7 @@ namespace Simulator
             for (int i = 0; i < 10; i++)
             {
                 var process = RemoveProcess(i);
-                await AddToReady(process, Model.SimulationDelay);
+                await AddToReady(process, false, Model.SimulationDelay);
             }
 
 
@@ -212,13 +214,13 @@ namespace Simulator
         /// <param name="process"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public async Task AddToReady(PCB process, int delay = 1000)
+        public async Task AddToReady(PCB process, bool allocateMemory = true, int delay = 1000)
         {
             await Task.Delay(delay);
 
             // Adds the process to the ready queue
             process.Status = ProcessStatus.READY;
-            AddProcess(process);
+            AddProcess(process, -1, allocateMemory);
         }
 
         /// <summary>
@@ -237,7 +239,7 @@ namespace Simulator
         /// adding a PCB to a given position in the queue, the default position is the end (tail) of the queue.
         /// </summary>
         /// <param name="process"></param>
-        public void AddProcess(PCB process, int position = -1)
+        public void AddProcess(PCB process, int position = -1, bool allocateMemory = true)
         {
             // set the desired queue according to the process status
             var queue = process.Status == ProcessStatus.READY ? Model.ReadyQueue : Model.WaitingQueue;
@@ -257,24 +259,32 @@ namespace Simulator
 
             if (process.Status == ProcessStatus.READY)
             {
-                // Allocate the memory
-                var allocationResult = Model.Memory.TryAllocate(process.ProcessId, process.TotalMemoryAllocated);
 
-                Console.WriteLine("Allocating Memory  PID={0} Location={1}  Size={2}  WaitTime={3}  ExecutionTime={4}", process.ProcessId, allocationResult, process.TotalMemoryAllocated, process.WaitTime, process.TimeNeededForMemory);
-
-                if (allocationResult == -1)
+                if (allocateMemory)
                 {
-                    // Fragmentation Error
-                    var message = "Cannot allocate memory for process. Possible Fragmentation error using: " + Model.SelectedMemoryType.ToString();
-
-                    MessageBox.Show(message);
-                    Console.WriteLine(message);
+                    AllocateMemory(process);
                 }
 
-                // Free memory for process when finished executing
-                Task.Run(() => ClearAllocatedMemory(process.TimeNeededForMemory, process.ProcessId));
-
             }
+        }
+
+        public int AllocateMemory(PCB process)
+        {
+            // Allocate the memory
+            var allocationResult = Model.Memory.TryAllocate(process.ProcessId, process.TotalMemoryAllocated);
+
+            Console.WriteLine("Allocating Memory  PID={0} Memory_Location={1}  Size={2}  at time {3}", process.ProcessId, allocationResult, process.TotalMemoryAllocated, Model.Clock);
+
+            if (allocationResult == -1)
+            {
+                // Fragmentation Error
+                var message = "Cannot allocate memory for process. Possible Fragmentation error using: " + Model.SelectedMemoryType.ToString();
+
+                MessageBox.Show(message);
+                Console.WriteLine(message);
+            }
+
+            return allocationResult;
         }
 
         /// <summary>
@@ -441,7 +451,7 @@ namespace Simulator
         /// Process the simulation file
         /// </summary>
         /// <param name="filePath"></param>
-        public async void LoadProcessesFromFile(string filePath, int delayMultiplier = 1000)
+        public async void LoadProcessesFromFile(string filePath, int delay = 1000)
         {
             try
             {
@@ -485,19 +495,14 @@ namespace Simulator
                                 // Create a new process with the specified info
                                 var process = new PCB(pid);
                                 process.TotalMemoryAllocated = memNeeded;
-                                process.TimeNeededForMemory = execTime * delayMultiplier;
-                                process.WaitTime = waitTime * delayMultiplier;
+                                process.TimeNeededForMemory = execTime;
+                                process.WaitTime = waitTime;
                                 processes.Add(process);
                             }
                         }
                     }
 
-                    // Start the processes
-                    processes.ForEach(p => AddToWaiting(p, 0));
-                    processes.ForEach(p => SetToReady(p, p.WaitTime));
-
-
-
+                    DoMemoryAllocationForProcesses(processes, delay);
                 }
             }
 
@@ -506,6 +511,57 @@ namespace Simulator
                 MessageBox.Show("Error reading file data - " + e.Message);
                 Console.WriteLine(e.StackTrace);
             }
+        }
+
+        public async void DoMemoryAllocationForProcesses(List<PCB> processes, int delay = 1000)
+        {
+            // Add all to waiting
+            processes.ForEach(p => AddToWaiting(p, 0));
+
+            // Reset the clock
+            Model.Clock = 0;
+
+            while (processes.Count(p => !p.IsMemoryAllocationFinished) > 0)
+            {
+                // Clear processes with finished memory
+                foreach (var process in processes.Where(p => p.HasMemoryAllocated && !p.IsMemoryAllocationFinished))
+                {
+                    if (Model.Clock == process.TimeStarted + process.TimeNeededForMemory)
+                    {
+
+                        ClearAllocatedMemory(0, process.ProcessId);
+                        process.IsMemoryAllocationFinished = true;
+                    }
+                }
+
+                // Allocate memory for ready processes
+                foreach (var process in processes.Where(p => !p.HasMemoryAllocated))
+                {
+                    if (Model.Clock == process.WaitTime)
+                    {
+                        // START PROCESS
+
+                        process.TimeStarted = Model.Clock;
+                        SetToReady(process, false, 0);
+                        
+                        int allocationResult = AllocateMemory(process);
+
+                        if (allocationResult > -1)
+                        {
+                            process.HasMemoryAllocated = true;
+                        }
+                    }
+                }
+
+                await Task.Delay(delay);
+
+                Notify(this.ScreenshotEvent, new NotificationEventArgs(Model.Clock.ToString()));
+
+                Model.Clock++;
+
+            }
+            MoveToNextProcess();
+
         }
     }
 }

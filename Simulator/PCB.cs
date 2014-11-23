@@ -147,7 +147,7 @@ namespace Simulator
         }
 
         /// <summary>
-        /// Wait time of process executionm
+        /// Wait time of process execution
         /// </summary>
         private int waitTime;
         /// <summary>
@@ -161,6 +161,46 @@ namespace Simulator
                 waitTime = value;
                 NotifyPropertyChanged(m => m.WaitTime);
 
+            }
+        }
+
+        /// <summary>
+        /// Time the memory was allocated
+        /// </summary>
+        private int timeStarted;
+        /// <summary>
+        /// Time the memory was allocated
+        /// </summary>
+        public int TimeStarted
+        {
+            get { return timeStarted; }
+            set
+            {
+                timeStarted = value;
+                NotifyPropertyChanged(m => m.TimeStarted);
+
+            }
+        }
+
+        private bool hasMemoryAllocated;
+        public bool HasMemoryAllocated
+        {
+            get { return hasMemoryAllocated; }
+            set
+            {
+                hasMemoryAllocated = value;
+                NotifyPropertyChanged(m => m.HasMemoryAllocated);
+            }
+        }
+
+        private bool isMemoryAllocationFinished;
+        public bool IsMemoryAllocationFinished
+        {
+            get { return isMemoryAllocationFinished; }
+            set
+            {
+                isMemoryAllocationFinished = value;
+                NotifyPropertyChanged(m => m.IsMemoryAllocationFinished);
             }
         }
 
@@ -227,6 +267,10 @@ Registers:
             }
         }
 
+
+        // Create a random number generator
+        private static Random rand = new Random();
+
         /// <summary>
         /// Constructor for a PCB class.
         /// </summary>
@@ -237,9 +281,6 @@ Registers:
             Registers = new ObservableCollection<int>();
             OpenFiles = new ObservableCollection<string>();
             OpenDevices = new ObservableCollection<string>();
-
-            // Create a random number generator
-            var rand = new Random();
 
             // Fill 16 registers with random values
             for (int i = 0; i < 16; i++)
