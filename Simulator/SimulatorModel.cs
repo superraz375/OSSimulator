@@ -173,6 +173,17 @@ namespace Simulator
             }
         }
 
+        private bool enableMemoryScreenshots;
+        public bool EnableMemoryScreenshots
+        {
+            get { return enableMemoryScreenshots; }
+            set
+            {
+                enableMemoryScreenshots = value;
+                NotifyPropertyChanged(m => m.EnableMemoryScreenshots);
+            }
+        }
+
         /// <summary>
         /// Updates the memory with the correct algorithm and size
         /// </summary>

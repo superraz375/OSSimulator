@@ -37,7 +37,7 @@ namespace Simulator
         void vm_ScreenshotEvent(object sender, SimpleMvvmToolkit.NotificationEventArgs e)
         {
             var bytes = memoryListBox.GetImage(2, 2);
-            File.WriteAllBytes(@"C:\temp\" + e.Message + ".png", bytes);
+            File.WriteAllBytes(e.Message + ".png", bytes);
         }
     }
 }

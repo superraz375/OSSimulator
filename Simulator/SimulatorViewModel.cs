@@ -555,8 +555,10 @@ namespace Simulator
 
                 await Task.Delay(delay);
 
-                Notify(this.ScreenshotEvent, new NotificationEventArgs(Model.Clock.ToString()));
-
+                if (Model.EnableMemoryScreenshots)
+                {
+                    Notify(this.ScreenshotEvent, new NotificationEventArgs(Model.Clock.ToString()));
+                }
                 Model.Clock++;
 
             }

@@ -167,6 +167,14 @@
                 Grid.RowSpan="2"
                 VerticalAlignment="Top" />
 
+        <CheckBox Content="Enable Memory Screenshots"
+                Grid.Column="3"
+                Grid.Row="5"
+                  Margin="5"
+                IsEnabled="{Binding Path=Model.IsEnabled}"
+                  IsChecked="{Binding Model.EnableMemoryScreenshots}"
+                />
+
 
 
         <Grid  Grid.Column="3"
