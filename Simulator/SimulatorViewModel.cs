@@ -277,6 +277,11 @@ namespace Simulator
 
             if (allocationResult == -1)
             {
+                // Wait
+                Console.WriteLine("Waiting for more memory");
+            }
+            else if (allocationResult == -2)
+            {
                 // Fragmentation Error
                 var message = "Cannot allocate memory for process. Possible Fragmentation error using: " + Model.SelectedMemoryType.ToString();
 
@@ -537,7 +542,7 @@ namespace Simulator
                 // Allocate memory for ready processes
                 foreach (var process in processes.Where(p => !p.HasMemoryAllocated))
                 {
-                    if (Model.Clock == process.WaitTime)
+                    if (Model.Clock >= process.WaitTime)
                     {
                         // START PROCESS
 

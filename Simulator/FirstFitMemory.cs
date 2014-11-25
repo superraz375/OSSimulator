@@ -37,10 +37,15 @@ namespace Simulator
                 {
                     MemoryArray[i + selectedBlock.Key] = processId;
                 }
-              return selectedBlock.Key;
+                return selectedBlock.Key;
+            }
+            else if (blocks.Sum(d => d.Value) >= size)
+            {
+                // Fragmentation
+                return -2;
             }
 
-            // Cannot allocate the memory
+            // Not enough memory, wait.
             return -1;
         }
     }
